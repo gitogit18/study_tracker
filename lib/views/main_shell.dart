@@ -38,10 +38,20 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      HomeView(viewModel: widget.homeViewModel),
-      const ChooseSubjectView(),
-      const HistoryView(),
-      const StatsView(),
+      HomeView(
+        viewModel: widget.homeViewModel,
+        sessionViewModel: widget.sessionViewModel,
+        subjectViewModel: widget.subjectViewModel,
+        onSessionSaved: widget.onDataChanged ?? () {},
+      ),
+      ChooseSubjectView(
+        viewModel: widget.subjectViewModel,
+        sessionViewModel: widget.sessionViewModel,
+        onSessionSaved: widget.onDataChanged ?? () {},
+        showBackButton: false,
+      ),
+      HistoryView(viewModel: widget.historyViewModel),
+      StatsView(viewModel: widget.statsViewModel),
     ];
 
     return Scaffold(

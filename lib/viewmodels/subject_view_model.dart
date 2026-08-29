@@ -7,9 +7,32 @@ class SubjectViewModel extends ChangeNotifier {
   final StudyRepository repository;
 
   List<Subject> subjects = [];
+  String _searchQuery = '';
 
   void load() {
     subjects = repository.subjects;
     notifyListeners();
+  }
+
+  void setSearch(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  List<Subject> get filteredSubjects {
+    if (_searchQuery.isEmpty) return subjects;
+    return subjects
+        .where((s) => s.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
+  }
+
+  void addSubject(Subject subject) {
+    repository.addSubject(subject);
+    load();
+  }
+
+  void deleteSubject(String id) {
+    repository.deleteSubject(id);
+    load();
   }
 }

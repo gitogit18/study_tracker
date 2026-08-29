@@ -8,44 +8,49 @@ class SubjectRow extends StatelessWidget {
   const SubjectRow({
     super.key,
     required this.subject,
-    this.trailing,
     this.onTap,
+    this.trailing,
     this.subtitle,
   });
 
   final Subject subject;
-  final Widget? trailing;
   final VoidCallback? onTap;
+  final Widget? trailing;
   final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppTheme.card,
+      color: Colors.white,
 
       borderRadius:
       BorderRadius.circular(24),
 
       child: InkWell(
         onTap: onTap,
-
-        borderRadius:
-        BorderRadius.circular(24),
-
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          constraints: BoxConstraints(
+            minHeight: subtitle == null ? 104 : 120,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 28,
+            vertical: 16,
+          ),
           child: Row(
             children: [
               SubjectIconTile(
                 subject: subject,
-                size: 56,
+                size: 58,
               ),
 
-              const SizedBox(width: 18),
+              const SizedBox(width: 24),
 
               Expanded(
                 child: Column(
+                  mainAxisAlignment:
+                  MainAxisAlignment.center,
+
                   crossAxisAlignment:
                   CrossAxisAlignment.start,
 
@@ -53,9 +58,16 @@ class SubjectRow extends StatelessWidget {
                     Text(
                       subject.name,
 
+                      maxLines: 1,
+
+                      overflow:
+                      TextOverflow.ellipsis,
+
                       style: const TextStyle(
                         fontSize: 21,
-                        fontWeight: FontWeight.w500,
+                        fontWeight:
+                        FontWeight.w500,
+                        color: AppTheme.ink,
                       ),
                     ),
 
@@ -65,9 +77,11 @@ class SubjectRow extends StatelessWidget {
                       Text(
                         subtitle!,
 
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: AppTheme.muted,
+                        style:
+                        const TextStyle(
+                          fontSize: 16,
+                          color:
+                          AppTheme.muted,
                         ),
                       ),
                     ],
@@ -78,8 +92,8 @@ class SubjectRow extends StatelessWidget {
               trailing ??
                   const Icon(
                     Icons.chevron_right_rounded,
-                    color: Color(0xFFB7B8B5),
                     size: 28,
+                    color: Color(0xFFB8B9B6),
                   ),
             ],
           ),

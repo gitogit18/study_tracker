@@ -3,12 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:study_tracker/core/theme/app_theme.dart';
 import 'package:study_tracker/core/utils/formatters.dart';
 import 'package:study_tracker/viewmodels/home_view_model.dart';
+import 'package:study_tracker/viewmodels/session_view_model.dart';
+import 'package:study_tracker/viewmodels/subject_view_model.dart';
 import 'package:study_tracker/widgets/subject_row.dart';
+import '../session/study_timer_view.dart';
 
 class HomeView extends StatelessWidget {
-  const HomeView({super.key, required this.viewModel});
+  const HomeView({
+    super.key,
+    required this.viewModel,
+    required this.sessionViewModel,
+    required this.subjectViewModel,
+    required this.onSessionSaved,
+  });
 
   final HomeViewModel viewModel;
+  final SessionViewModel sessionViewModel;
+  final SubjectViewModel subjectViewModel;
+  final VoidCallback onSessionSaved;
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +88,7 @@ class HomeView extends StatelessWidget {
 
         Text(
           'Good afternoon, Alex.',
+          softWrap: true,
           style: Theme.of(context)
               .textTheme
               .headlineMedium
@@ -278,8 +291,17 @@ class HomeView extends StatelessWidget {
       height: 114,
       child: ElevatedButton(
         onPressed: () {
-          // We'll connect this to Choose Subject
-          // in the next step.
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StudyTimerView(
+                subject: null,
+                viewModel: sessionViewModel,
+                subjectViewModel: subjectViewModel,
+                onSessionSaved: onSessionSaved,
+              ),
+            ),
+          );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.ink,
