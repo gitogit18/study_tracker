@@ -18,7 +18,7 @@ class SubjectIconTile extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: subject.color.withOpacity(0.1),
+        color: subject.color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(size * 0.4),
       ),
       child: Center(
