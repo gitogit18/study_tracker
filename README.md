@@ -1,17 +1,46 @@
-# study_tracker
+# Study Tracker
 
-A new Flutter project.
+A personal study-session tracker built with Flutter to help users build a clearer picture of how they spend their study time.
 
-## Getting Started
+Study Tracker lets users start a session instantly, track their study time, categorize the session afterward, and review their progress through history and statistics.
 
-This project is a starting point for a Flutter application.
+## ✨ Features
 
-A few resources to get you started if this is your first Flutter project:
+- 🔐 Google Sign-In authentication
+- ⏱️ Real-time study session timer
+- 📚 Custom study subjects
+- 🏷️ Post-session subject categorization
+- 📝 Session notes
+- 📖 Study history
+- 📊 Weekly study statistics
+- 👤 Personalized user experience
+- ☁️ Firebase backend
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## 📱 Screens
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+| Home | Study Session | Choose Subject |
+|:---:|:---:|:---:|
+| <img src="screenshots/home.png" width="250"> | <img src="screenshots/session.png" width="250"> | <img src="screenshots/choose_subject.png" width="250"> |
+
+| History | Statistics | Manage Subjects |
+|:---:|:---:|:---:|
+| <img src="screenshots/history.png" width="250"> | <img src="screenshots/stats.png" width="250"> | <img src="screenshots/manage_subjects.png" width="250"> |
+
+## 🧠 How It Works
+
+Study Tracker is designed around a simple workflow:
+
+```text
+Start Session
+      ↓
+Study
+      ↓
+End Session
+      ↓
+Choose Subject
+      ↓
+Add Note
+      ↓
+Save Session
+      ↓
+History + Statistics
