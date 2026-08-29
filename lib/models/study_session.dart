@@ -10,6 +10,6 @@ class StudySession {
     required this.subjectId,
     required this.startedAt,
     required this.duration,
-    required this.note,
-});
+    this.note,
+  });
 }

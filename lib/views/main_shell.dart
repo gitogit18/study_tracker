@@ -1,7 +1,32 @@
 import 'package:flutter/material.dart';
 
+import '../viewmodels/history_view_model.dart';
+import '../viewmodels/home_view_model.dart';
+import '../viewmodels/session_view_model.dart';
+import '../viewmodels/stats_view_model.dart';
+import '../viewmodels/subject_view_model.dart';
+import 'home/home_view.dart';
+import 'session/choose_subject_view.dart';
+import 'history/history_view.dart';
+import 'stats/stats_view.dart';
+
 class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+  const MainShell({
+    super.key,
+    required this.homeViewModel,
+    required this.subjectViewModel,
+    required this.historyViewModel,
+    required this.statsViewModel,
+    required this.sessionViewModel,
+    this.onDataChanged,
+  });
+
+  final HomeViewModel homeViewModel;
+  final SubjectViewModel subjectViewModel;
+  final HistoryViewModel historyViewModel;
+  final StatsViewModel statsViewModel;
+  final SessionViewModel sessionViewModel;
+  final VoidCallback? onDataChanged;
 
   @override
   State<MainShell> createState() => _MainShellState();
@@ -12,12 +37,17 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final pages = [
+      HomeView(viewModel: widget.homeViewModel),
+      const ChooseSubjectView(),
+      const HistoryView(),
+      const StatsView(),
+    ];
+
     return Scaffold(
-      body: Center(
-        child: Text(
-          'Study Tracker',
-          style: Theme.of(context).textTheme.headlineLarge,
-        ),
+      body: IndexedStack(
+        index: currentIndex,
+        children: pages,
       ),
 
       bottomNavigationBar: NavigationBar(
@@ -43,8 +73,12 @@ class _MainShellState extends State<MainShell> {
           ),
 
           NavigationDestination(
-            icon: Icon(Icons.calendar_today_outlined),
-            selectedIcon: Icon(Icons.calendar_today),
+            icon: Icon(
+              Icons.calendar_today_outlined,
+            ),
+            selectedIcon: Icon(
+              Icons.calendar_today,
+            ),
             label: 'History',
           ),
 
