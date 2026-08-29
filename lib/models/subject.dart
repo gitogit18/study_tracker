@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum SubjectIcon{
+enum SubjectIcon {
   code,
   book,
   math,
@@ -27,5 +27,22 @@ class Subject {
     required this.name,
     required this.icon,
     required this.color,
-});
+  });
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'name': name,
+      'icon': icon.name,
+      'color': color.value,
+    };
+  }
+
+  factory Subject.fromFirestore(String id, Map<String, dynamic> data) {
+    return Subject(
+      id: id,
+      name: data['name'] ?? '',
+      icon: SubjectIcon.values.byName(data['icon'] ?? 'code'),
+      color: Color(data['color'] ?? 0xFF4D8073),
+    );
+  }
 }

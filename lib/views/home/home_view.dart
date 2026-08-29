@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:study_tracker/core/theme/app_theme.dart';
 import 'package:study_tracker/core/utils/formatters.dart';
+import 'package:study_tracker/viewmodels/auth_view_model.dart';
 import 'package:study_tracker/viewmodels/home_view_model.dart';
 import 'package:study_tracker/viewmodels/session_view_model.dart';
 import 'package:study_tracker/viewmodels/subject_view_model.dart';
@@ -66,39 +68,116 @@ class HomeView extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final authViewModel = context.read<AuthViewModel>();
+    final firstName = authViewModel.user?.displayName?.split(' ').first ?? 'Alex';
+
     final now = DateTime.now();
 
     final weekday = _weekday(now.weekday);
     final month = _month(now.month);
 
-    return Column(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '$weekday, ${month.toUpperCase()} ${now.day}',
-          style: const TextStyle(
-            fontSize: 16,
-            letterSpacing: 1.2,
-            color: AppTheme.muted,
-            fontWeight: FontWeight.w500,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$weekday, ${month.toUpperCase()} ${now.day}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  letterSpacing: 1.2,
+                  color: AppTheme.muted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              Text(
+                'Good afternoon, $firstName.',
+                softWrap: true,
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineMedium
+                    ?.copyWith(
+                  fontSize: 38,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -1.2,
+                ),
+              ),
+            ],
           ),
         ),
-
-        const SizedBox(height: 16),
-
-        Text(
-          'Good afternoon, Alex.',
-          softWrap: true,
-          style: Theme.of(context)
-              .textTheme
-              .headlineMedium
-              ?.copyWith(
-            fontSize: 38,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -1.2,
+        GestureDetector(
+          onTap: () => _showProfileDialog(context, authViewModel),
+          child: Container(
+            width: 54,
+            height: 58,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppTheme.divider),
+              image: authViewModel.user?.photoURL != null
+                  ? DecorationImage(
+                      image: NetworkImage(authViewModel.user!.photoURL!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: authViewModel.user?.photoURL == null
+                ? const Icon(Icons.person_outline_rounded, color: AppTheme.muted)
+                : null,
           ),
         ),
       ],
+    );
+  }
+
+  void _showProfileDialog(BuildContext context, AuthViewModel authViewModel) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Profile'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundImage: authViewModel.user?.photoURL != null
+                  ? NetworkImage(authViewModel.user!.photoURL!)
+                  : null,
+              child: authViewModel.user?.photoURL == null
+                  ? const Icon(Icons.person, size: 40)
+                  : null,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              authViewModel.user?.displayName ?? 'User',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              authViewModel.user?.email ?? '',
+              style: const TextStyle(color: AppTheme.muted),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              authViewModel.signOut();
+            },
+            child: const Text('Sign Out', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 

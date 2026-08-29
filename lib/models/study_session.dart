@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class StudySession {
   final String id;
   final String subjectId;
@@ -12,4 +14,23 @@ class StudySession {
     required this.duration,
     this.note,
   });
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'subjectId': subjectId,
+      'startedAt': Timestamp.fromDate(startedAt),
+      'duration': duration.inSeconds,
+      'note': note,
+    };
+  }
+
+  factory StudySession.fromFirestore(String id, Map<String, dynamic> data) {
+    return StudySession(
+      id: id,
+      subjectId: data['subjectId'] ?? '',
+      startedAt: (data['startedAt'] as Timestamp).toDate(),
+      duration: Duration(seconds: data['duration'] ?? 0),
+      note: data['note'],
+    );
+  }
 }
