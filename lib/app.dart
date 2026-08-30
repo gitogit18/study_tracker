@@ -27,7 +27,7 @@ class StudyTrackerApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Study Tracker',
+        title: 'Focusly',
         theme: AppTheme.lightTheme,
         home: const AuthGate(),
       ),
