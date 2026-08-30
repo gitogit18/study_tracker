@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:study_tracker/models/study_session.dart';
-import 'package:study_tracker/models/subject.dart';
-import 'package:study_tracker/repositories/study_repository.dart';
+import '../models/study_session.dart';
+import '../models/subject.dart';
+import '../repositories/study_repository.dart';
 
 class HomeViewModel extends ChangeNotifier {
   HomeViewModel(this.repository);

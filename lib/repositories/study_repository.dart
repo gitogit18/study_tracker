@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import 'package:study_tracker/models/study_session.dart';
-import 'package:study_tracker/models/subject.dart';
+import '../models/study_session.dart';
+import '../models/subject.dart';
 
 class StudyRepository extends ChangeNotifier {
   StudyRepository(this.uid) {

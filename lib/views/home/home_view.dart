@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:study_tracker/core/theme/app_theme.dart';
-import 'package:study_tracker/core/utils/formatters.dart';
-import 'package:study_tracker/viewmodels/auth_view_model.dart';
-import 'package:study_tracker/viewmodels/home_view_model.dart';
-import 'package:study_tracker/viewmodels/session_view_model.dart';
-import 'package:study_tracker/viewmodels/subject_view_model.dart';
-import 'package:study_tracker/widgets/subject_row.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/utils/formatters.dart';
+import '../../viewmodels/auth_view_model.dart';
+import '../../viewmodels/home_view_model.dart';
+import '../../viewmodels/session_view_model.dart';
+import '../../viewmodels/subject_view_model.dart';
+import '../../widgets/subject_row.dart';
 import '../session/study_timer_view.dart';
 
 class HomeView extends StatelessWidget {

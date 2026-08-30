@@ -33,7 +33,7 @@ class LoginView extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               const Text(
-                'Study Tracker',
+                'Focusly',
                 style: TextStyle(
                   fontSize: 42,
                   fontWeight: FontWeight.w700,
