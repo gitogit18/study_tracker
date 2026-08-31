@@ -1,4 +1,4 @@
-# Study Tracker
+# Focusly
 
 A personal study-session tracker built with Flutter to help users build a clearer picture of how they spend their study time.
 
