@@ -6,6 +6,7 @@ import '../../viewmodels/session_view_model.dart';
 import '../../viewmodels/subject_view_model.dart';
 import '../../widgets/subject_icon_tile.dart';
 import 'categorize_session_view.dart';
+import 'session_summary_dialog.dart';
 
 class StudyTimerView extends StatefulWidget {
   const StudyTimerView({
@@ -82,18 +83,32 @@ class _StudyTimerViewState extends State<StudyTimerView> {
     );
   }
 
-  void _endSession() {
+  Future<void> _endSession() async {
     _stopTimer();
 
     if (widget.subject != null) {
-      // Direct save if subject was already chosen
-      widget.viewModel.saveSession(
-        subjectId: widget.subject!.id,
-        startedAt: _startTime,
+      // Show Summary Dialog for pre-selected subject
+      final note = await showSessionSummaryDialog(
+        context: context,
         duration: _elapsed,
+        subject: widget.subject!,
       );
-      widget.onSessionSaved();
-      Navigator.of(context).popUntil((route) => route.isFirst);
+
+      if (note != null) {
+        widget.viewModel.saveSession(
+          subjectId: widget.subject!.id,
+          startedAt: _startTime,
+          duration: _elapsed,
+          note: note,
+        );
+        widget.onSessionSaved();
+        if (mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      } else {
+        // If they cancelled the dialog, we might want to resume or stay?
+        // But the dialog is non-dismissible, so "Save" is the only way out.
+      }
     } else {
       // Navigate to categorization if it was a quick start
       Navigator.pushReplacement(

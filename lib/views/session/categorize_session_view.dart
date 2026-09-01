@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
 import '../../models/subject.dart';
+import '../../viewmodels/auth_view_model.dart';
 import '../../viewmodels/session_view_model.dart';
 import '../../viewmodels/subject_view_model.dart';
 import '../../widgets/subject_row.dart';
 
-class CategorizeSessionView extends StatelessWidget {
+class CategorizeSessionView extends StatefulWidget {
   const CategorizeSessionView({
     super.key,
     required this.startedAt,
@@ -23,11 +25,27 @@ class CategorizeSessionView extends StatelessWidget {
   final VoidCallback onSessionSaved;
 
   @override
+  State<CategorizeSessionView> createState() => _CategorizeSessionViewState();
+}
+
+class _CategorizeSessionViewState extends State<CategorizeSessionView> {
+  final _noteController = TextEditingController();
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authViewModel = context.read<AuthViewModel>();
+    final firstName = authViewModel.user?.displayName?.split(' ').first ?? 'Alex';
+
     return AnimatedBuilder(
-      animation: viewModel,
+      animation: widget.viewModel,
       builder: (context, _) {
-        final subjects = viewModel.filteredSubjects;
+        final subjects = widget.viewModel.filteredSubjects;
 
         return Scaffold(
           backgroundColor: AppTheme.background,
@@ -35,9 +53,9 @@ class CategorizeSessionView extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(44, 40, 44, 40),
               children: [
-                const Text(
-                  'Great job!',
-                  style: TextStyle(
+                Text(
+                  'Great job, $firstName!',
+                  style: const TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.8,
@@ -45,11 +63,48 @@ class CategorizeSessionView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  'You studied for ${formatDuration(duration)}. Which subject was this for?',
-                  style: const TextStyle(
-                    fontSize: 22,
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 22,
+                      color: AppTheme.muted,
+                      fontFamily: 'SF Pro Display', // Match app font if possible
+                    ),
+                    children: [
+                      const TextSpan(text: 'You studied for '),
+                      TextSpan(
+                        text: formatDuration(widget.duration),
+                        style: const TextStyle(
+                          color: AppTheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const TextSpan(text: '.'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 48),
+                const Text(
+                  'NOTES',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
                     color: AppTheme.muted,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _noteController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: 'What did you achieve?',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 48),
@@ -118,12 +173,13 @@ class CategorizeSessionView extends StatelessWidget {
   }
 
   void _categorize(BuildContext context, Subject subject) {
-    sessionViewModel.saveSession(
+    widget.sessionViewModel.saveSession(
       subjectId: subject.id,
-      startedAt: startedAt,
-      duration: duration,
+      startedAt: widget.startedAt,
+      duration: widget.duration,
+      note: _noteController.text.trim(),
     );
-    onSessionSaved();
+    widget.onSessionSaved();
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 }

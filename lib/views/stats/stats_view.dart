@@ -20,12 +20,7 @@ class StatsView extends StatelessWidget {
           backgroundColor: AppTheme.background,
           body: SafeArea(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                32,
-                28,
-                32,
-                40,
-              ),
+              padding: const EdgeInsets.fromLTRB(32, 28, 32, 40),
               children: [
                 const Text(
                   'Statistics',
@@ -36,9 +31,9 @@ class StatsView extends StatelessWidget {
                     color: AppTheme.ink,
                   ),
                 ),
-
-                const SizedBox(height: 6),
-
+                const SizedBox(height: 24),
+                _buildPeriodSwitcher(),
+                const SizedBox(height: 24),
                 Text(
                   _dateRange(),
                   style: const TextStyle(
@@ -46,43 +41,33 @@ class StatsView extends StatelessWidget {
                     color: AppTheme.muted,
                   ),
                 ),
-
                 const SizedBox(height: 42),
-
-                _buildWeeklyChart(),
-
-                const SizedBox(height: 28),
-
+                if (viewModel.selectedPeriod != StatPeriod.daily) ...[
+                  _buildPeriodChart(),
+                  const SizedBox(height: 28),
+                ],
                 Row(
                   children: [
                     Expanded(
                       child: _buildStatCard(
                         title: 'TOTAL SESSIONS',
-                        value:
-                        '${viewModel.totalSessions}',
+                        value: '${viewModel.totalSessions}',
                         unit: 'sessions',
                       ),
                     ),
-
                     const SizedBox(width: 20),
-
                     Expanded(
                       child: _buildStatCard(
                         title: 'AVG DURATION',
-                        value:
-                        '${viewModel.averageDurationMinutes}',
+                        value: '${viewModel.averageDurationMinutes}',
                         unit: 'min',
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 28),
-
                 _buildTotalStudyTime(),
-
                 const SizedBox(height: 28),
-
                 _buildSubjectBreakdown(),
               ],
             ),
@@ -92,91 +77,101 @@ class StatsView extends StatelessWidget {
     );
   }
 
-  Widget _buildWeeklyChart() {
-    final weeklyMinutes =
-        viewModel.weeklyStudyMinutes;
-
-    final maxMinutes = weeklyMinutes.isEmpty
-        ? 1
-        : weeklyMinutes.reduce(
-          (a, b) => a > b ? a : b,
+  Widget _buildPeriodSwitcher() {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.divider),
+      ),
+      child: Row(
+        children: [
+          _buildSwitcherItem(StatPeriod.daily, 'Daily'),
+          _buildSwitcherItem(StatPeriod.weekly, 'Weekly'),
+          _buildSwitcherItem(StatPeriod.monthly, 'Monthly'),
+        ],
+      ),
     );
+  }
 
-    const labels = [
-      'M',
-      'T',
-      'W',
-      'T',
-      'F',
-      'S',
-      'S',
-    ];
+  Widget _buildSwitcherItem(StatPeriod period, String label) {
+    final isSelected = viewModel.selectedPeriod == period;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => viewModel.setPeriod(period),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.ink : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isSelected ? Colors.white : AppTheme.muted,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPeriodChart() {
+    final data = viewModel.chartData;
+    final labels = viewModel.chartLabels;
+
+    final maxMinutes = data.isEmpty ? 1 : data.reduce((a, b) => a > b ? a : b);
+    final title = viewModel.selectedPeriod == StatPeriod.weekly
+        ? 'WEEKLY STUDY HOURS'
+        : 'MONTHLY PROGRESS (WEEKS)';
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-        28,
-        28,
-        28,
-        26,
-      ),
+      padding: const EdgeInsets.fromLTRB(28, 28, 28, 26),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppTheme.divider,
-        ),
+        border: Border.all(color: AppTheme.divider),
       ),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'WEEKLY STUDY HOURS',
-            style: TextStyle(
+          Text(
+            title,
+            style: const TextStyle(
               fontSize: 17,
               letterSpacing: 1.4,
               color: AppTheme.muted,
               fontWeight: FontWeight.w500,
             ),
           ),
-
           const SizedBox(height: 50),
-
           SizedBox(
             height: 150,
             child: Row(
-              crossAxisAlignment:
-              CrossAxisAlignment.end,
-              mainAxisAlignment:
-              MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(
-                7,
-                    (index) {
-                  final minutes =
-                  weeklyMinutes[index];
+                data.length,
+                (index) {
+                  final minutes = data[index];
+                  final height = minutes == 0 ? 7.0 : 7 + (minutes / maxMinutes) * 55;
 
-                  final height = minutes == 0
-                      ? 7.0
-                      : 7 +
-                      (minutes /
-                          maxMinutes) *
-                          55;
-
-                  final isToday =
-                      index ==
-                          DateTime.now()
-                              .weekday -
-                              1;
+                  bool isCurrent = false;
+                  if (viewModel.selectedPeriod == StatPeriod.weekly) {
+                    isCurrent = index == DateTime.now().weekday - 1;
+                  } else if (viewModel.selectedPeriod == StatPeriod.monthly) {
+                    isCurrent = index == ((DateTime.now().day - 1) ~/ 7);
+                  }
 
                   return Expanded(
                     child: Padding(
-                      padding:
-                      const EdgeInsets.symmetric(
-                        horizontal: 5,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
                       child: Column(
-                        mainAxisAlignment:
-                        MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           FittedBox(
                             fit: BoxFit.scaleDown,
@@ -184,51 +179,28 @@ class StatsView extends StatelessWidget {
                               _formatHours(minutes),
                               style: TextStyle(
                                 fontSize: 15,
-                                color: isToday
-                                    ? AppTheme.primary
-                                    : AppTheme.muted,
-                                fontWeight:
-                                isToday
-                                    ? FontWeight.w500
-                                    : FontWeight
-                                    .normal,
+                                color: isCurrent ? AppTheme.primary : AppTheme.muted,
+                                fontWeight: isCurrent ? FontWeight.w500 : FontWeight.normal,
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 14),
-
                           Container(
                             height: height,
-                            decoration:
-                            BoxDecoration(
-                              color: isToday
+                            decoration: BoxDecoration(
+                              color: isCurrent
                                   ? AppTheme.primary
-                                  : AppTheme.primary
-                                  .withValues(
-                                alpha: 0.3,
-                              ),
-                              borderRadius:
-                              BorderRadius
-                                  .circular(8),
+                                  : AppTheme.primary.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-
                           const SizedBox(height: 14),
-
                           Text(
                             labels[index],
-                            style:
-                            TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: isToday
-                                  ? AppTheme.ink
-                                  : AppTheme.muted,
-                              fontWeight:
-                              isToday
-                                  ? FontWeight.w500
-                                  : FontWeight
-                                  .normal,
+                              color: isCurrent ? AppTheme.ink : AppTheme.muted,
+                              fontWeight: isCurrent ? FontWeight.w500 : FontWeight.normal,
                             ),
                           ),
                         ],
@@ -314,23 +286,21 @@ class StatsView extends StatelessWidget {
   }
 
   Widget _buildTotalStudyTime() {
-    final hours =
-        viewModel.totalStudyHours;
+    final hours = viewModel.totalStudyHours;
+    final periodText = viewModel.selectedPeriod == StatPeriod.daily
+        ? 'today'
+        : viewModel.selectedPeriod == StatPeriod.weekly
+            ? 'this week'
+            : 'this month';
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-        32,
-        30,
-        32,
-        34,
-      ),
+      padding: const EdgeInsets.fromLTRB(32, 30, 32, 34),
       decoration: BoxDecoration(
         color: AppTheme.ink,
         borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'TOTAL STUDY TIME',
@@ -340,15 +310,12 @@ class StatsView extends StatelessWidget {
               color: Colors.white70,
             ),
           ),
-
           const SizedBox(height: 22),
-
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.bottomLeft,
             child: Row(
-              crossAxisAlignment:
-              CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   hours.toStringAsFixed(1),
@@ -359,12 +326,9 @@ class StatsView extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
                 const Padding(
-                  padding:
-                  EdgeInsets.only(bottom: 8),
+                  padding: EdgeInsets.only(bottom: 8),
                   child: Text(
                     'hours',
                     style: TextStyle(
@@ -376,12 +340,10 @@ class StatsView extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 18),
-
-          const Text(
-            'this week',
-            style: TextStyle(
+          Text(
+            periodText,
+            style: const TextStyle(
               fontSize: 18,
               color: Colors.white54,
             ),
@@ -392,6 +354,7 @@ class StatsView extends StatelessWidget {
   }
 
   Widget _buildSubjectBreakdown() {
+// ... existing code ...
     final breakdown =
         viewModel.subjectBreakdown;
 
@@ -554,14 +517,35 @@ class StatsView extends StatelessWidget {
   }
 
   String _dateRange() {
-    final start = viewModel.weekStart;
-    final end = viewModel.weekEnd;
+    final now = DateTime.now();
+    switch (viewModel.selectedPeriod) {
+      case StatPeriod.daily:
+        return 'Today, ${_month(now.month)} ${now.day}';
+      case StatPeriod.weekly:
+        final start = viewModel.weekStart;
+        final end = viewModel.weekEnd;
+        return '${_month(start.month)} ${start.day} – ${_month(end.month)} ${end.day}, ${end.year}';
+      case StatPeriod.monthly:
+        return 'Month of ${_monthFull(now.month)} ${now.year}';
+    }
+  }
 
-    return '${_month(start.month)} '
-        '${start.day} – '
-        '${_month(end.month)} '
-        '${end.day}, '
-        '${end.year}';
+  String _monthFull(int month) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return months[month - 1];
   }
 
   String _formatHours(int minutes) {
