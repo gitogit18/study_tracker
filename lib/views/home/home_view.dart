@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:confetti/confetti.dart';
+import 'package:liquid_progress_indicator/liquid_progress_indicator.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
@@ -31,10 +33,37 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  late ConfettiController _confettiController;
+  double _lastProgress = 0.0;
+  int _lastSessionCount = 0;
+
   @override
   void initState() {
     super.initState();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+    _lastProgress = widget.viewModel.progress;
+    _lastSessionCount = widget.viewModel.recentSessions.length;
+    widget.viewModel.addListener(_onViewModelChanged);
     _checkDailyGoal();
+  }
+
+  @override
+  void dispose() {
+    widget.viewModel.removeListener(_onViewModelChanged);
+    _confettiController.dispose();
+    super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    // Only trigger if goal was reached
+    if (widget.viewModel.progress >= 1.0 && _lastProgress < 1.0) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) _confettiController.play();
+      });
+    }
+    
+    _lastProgress = widget.viewModel.progress;
+    _lastSessionCount = widget.viewModel.recentSessions.length;
   }
 
   void _checkDailyGoal() {
@@ -53,39 +82,63 @@ class _HomeViewState extends State<HomeView> {
     return AnimatedBuilder(
       animation: widget.viewModel,
       builder: (context, _) {
-        return SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              24,
-              28,
-              24,
-              32,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context),
-
-                const SizedBox(height: 34),
-
-                _buildStudyCard(
-                  context,
-                  widget.viewModel,
+        return Stack(
+          children: [
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  24,
+                  28,
+                  24,
+                  32,
                 ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(context),
 
-                const SizedBox(height: 24),
+                    const SizedBox(height: 34),
 
-                _buildStartButton(context),
+                    _buildStudyCard(
+                      context,
+                      widget.viewModel,
+                    ),
 
-                const SizedBox(height: 42),
+                    const SizedBox(height: 24),
 
-                _buildRecentSessions(
-                  context,
-                  widget.viewModel,
+                    _buildStartButton(context),
+
+                    const SizedBox(height: 42),
+
+                    _buildRecentSessions(
+                      context,
+                      widget.viewModel,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: false,
+                numberOfParticles: 30,
+                maxBlastForce: 30,
+                minBlastForce: 15,
+                gravity: 0.3,
+                colors: const [
+                  AppTheme.primary,
+                  Colors.amber,
+                  Colors.blue,
+                  Colors.pink,
+                  Colors.orange,
+                  Colors.purple,
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
@@ -265,18 +318,24 @@ class _HomeViewState extends State<HomeView> {
 
           const SizedBox(height: 14),
 
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: LinearProgressIndicator(
-              value: viewModel.progress,
-              minHeight: 8,
-              backgroundColor:
-              const Color(0xFFECEDE9),
-              valueColor:
-              const AlwaysStoppedAnimation<Color>(
-                AppTheme.primary,
-              ),
-            ),
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: viewModel.progress),
+            duration: const Duration(milliseconds: 1000),
+            curve: Curves.easeInOut,
+            builder: (context, value, _) {
+              return SizedBox(
+                height: 12,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: LiquidLinearProgressIndicator(
+                    value: value,
+                    valueColor: const AlwaysStoppedAnimation(AppTheme.primary),
+                    backgroundColor: const Color(0xFFECEDE9),
+                    direction: Axis.horizontal,
+                  ),
+                ),
+              );
+            },
           ),
 
           const SizedBox(height: 16),

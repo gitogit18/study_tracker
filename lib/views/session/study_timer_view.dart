@@ -31,22 +31,26 @@ class StudyTimerView extends StatefulWidget {
 class _StudyTimerViewState extends State<StudyTimerView> {
   Timer? _timer;
   Duration _elapsed = Duration.zero;
-  late DateTime _startTime;
+  Duration _accumulatedDuration = Duration.zero;
+  late DateTime _sessionStartTime;
+  late DateTime _currentIntervalStart;
   bool _isCountdown = false;
+  bool _isPaused = false;
 
   @override
   void initState() {
     super.initState();
+    _sessionStartTime = DateTime.now();
     _isCountdown = widget.initialDuration != null;
     _startTimer();
   }
 
   void _startTimer() {
-    _startTime = DateTime.now();
+    _currentIntervalStart = DateTime.now();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         final now = DateTime.now();
-        _elapsed = now.difference(_startTime);
+        _elapsed = _accumulatedDuration + now.difference(_currentIntervalStart);
 
         if (_isCountdown) {
           if (_elapsed >= widget.initialDuration!) {
@@ -61,6 +65,22 @@ class _StudyTimerViewState extends State<StudyTimerView> {
 
   void _stopTimer() {
     _timer?.cancel();
+  }
+
+  void _pauseSession() {
+    _stopTimer();
+    setState(() {
+      _accumulatedDuration += DateTime.now().difference(_currentIntervalStart);
+      _elapsed = _accumulatedDuration;
+      _isPaused = true;
+    });
+  }
+
+  void _resumeSession() {
+    setState(() {
+      _isPaused = false;
+    });
+    _startTimer();
   }
 
   void _showCompletionDialog() {
@@ -85,6 +105,11 @@ class _StudyTimerViewState extends State<StudyTimerView> {
 
   Future<void> _endSession() async {
     _stopTimer();
+    
+    // Ensure we include the final running interval if not paused
+    if (!_isPaused) {
+      _elapsed = _accumulatedDuration + DateTime.now().difference(_currentIntervalStart);
+    }
 
     if (widget.subject != null) {
       // Show Summary Dialog for pre-selected subject
@@ -97,7 +122,7 @@ class _StudyTimerViewState extends State<StudyTimerView> {
       if (note != null) {
         widget.viewModel.saveSession(
           subjectId: widget.subject!.id,
-          startedAt: _startTime,
+          startedAt: _sessionStartTime,
           duration: _elapsed,
           note: note,
         );
@@ -105,9 +130,6 @@ class _StudyTimerViewState extends State<StudyTimerView> {
         if (mounted) {
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
-      } else {
-        // If they cancelled the dialog, we might want to resume or stay?
-        // But the dialog is non-dismissible, so "Save" is the only way out.
       }
     } else {
       // Navigate to categorization if it was a quick start
@@ -115,7 +137,7 @@ class _StudyTimerViewState extends State<StudyTimerView> {
         context,
         MaterialPageRoute(
           builder: (_) => CategorizeSessionView(
-            startedAt: _startTime,
+            startedAt: _sessionStartTime,
             duration: _elapsed,
             viewModel: widget.subjectViewModel,
             sessionViewModel: widget.viewModel,
@@ -211,24 +233,54 @@ class _StudyTimerViewState extends State<StudyTimerView> {
             ),
             const Spacer(),
             Padding(
-              padding: const EdgeInsets.all(48),
-              child: SizedBox(
-                width: double.infinity,
-                height: 80,
-                child: ElevatedButton(
-                  onPressed: _endSession,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: backgroundColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 80,
+                    child: OutlinedButton(
+                      onPressed: _isPaused ? _resumeSession : _pauseSession,
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white, width: 2),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(_isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded, size: 32),
+                          const SizedBox(width: 12),
+                          Text(
+                            _isPaused ? 'Resume Session' : 'Pause Session',
+                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: const Text(
-                    'End Session',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 80,
+                    child: ElevatedButton(
+                      onPressed: _endSession,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: _isPaused ? 0.8 : 1.0),
+                        foregroundColor: backgroundColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Text(
+                        'End Session',
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
