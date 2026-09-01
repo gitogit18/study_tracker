@@ -13,14 +13,25 @@ class HomeViewModel extends ChangeNotifier {
 
   Duration todayTotal = Duration.zero;
 
-  final Duration dailyGoal =
-  const Duration(hours: 4);
+  Duration get dailyGoal {
+    final minutesVal = repository.settings['dailyGoalMinutes'];
+    final int minutes = (minutesVal is num) ? minutesVal.toInt() : 240;
+    return Duration(minutes: minutes);
+  }
+
+  bool get shouldPromptForGoal {
+    final now = DateTime.now();
+    final today = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    final lastSetDate = repository.settings['lastGoalSetDate'] as String?;
+    return lastSetDate != today;
+  }
 
   int streak = 0;
 
   void load() {
     final now = DateTime.now();
-
+    
+    // ... logic for recentSessions and todayTotal remains the same
     recentSessions = repository.sessions
         .where(
           (session) =>
@@ -35,6 +46,11 @@ class HomeViewModel extends ChangeNotifier {
           (sum, session) => sum + session.duration,
     );
 
+    notifyListeners();
+  }
+
+  Future<void> setDailyGoal(Duration duration) async {
+    await repository.updateDailyGoal(duration.inMinutes);
     notifyListeners();
   }
 

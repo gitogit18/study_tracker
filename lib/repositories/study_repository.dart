@@ -15,11 +15,24 @@ class StudyRepository extends ChangeNotifier {
 
   List<Subject> _subjects = [];
   List<StudySession> _sessions = [];
+  Map<String, dynamic> _settings = {};
 
   StreamSubscription? _subjectsSub;
   StreamSubscription? _sessionsSub;
+  StreamSubscription? _settingsSub;
 
   void _init() {
+    _settingsSub = _firestore
+        .collection('users')
+        .doc(uid)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists) {
+        _settings = snapshot.data() ?? {};
+        notifyListeners();
+      }
+    });
+
     _subjectsSub = _firestore
         .collection('users')
         .doc(uid)
@@ -48,6 +61,17 @@ class StudyRepository extends ChangeNotifier {
 
   List<Subject> get subjects => List.unmodifiable(_subjects);
   List<StudySession> get sessions => List.unmodifiable(_sessions);
+  Map<String, dynamic> get settings => _settings;
+
+  Future<void> updateDailyGoal(int minutes) async {
+    final now = DateTime.now();
+    final today = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    
+    await _firestore.collection('users').doc(uid).set({
+      'dailyGoalMinutes': minutes,
+      'lastGoalSetDate': today,
+    }, SetOptions(merge: true));
+  }
 
   Subject? subjectById(String id) {
     try {
@@ -96,6 +120,7 @@ class StudyRepository extends ChangeNotifier {
   void dispose() {
     _subjectsSub?.cancel();
     _sessionsSub?.cancel();
+    _settingsSub?.cancel();
     super.dispose();
   }
 }

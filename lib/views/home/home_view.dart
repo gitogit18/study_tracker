@@ -10,8 +10,9 @@ import '../../viewmodels/subject_view_model.dart';
 import '../../widgets/subject_row.dart';
 import '../session/study_timer_view.dart';
 import '../session/duration_selection_dialog.dart';
+import 'daily_goal_dialog.dart';
 
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   const HomeView({
     super.key,
     required this.viewModel,
@@ -26,9 +27,31 @@ class HomeView extends StatelessWidget {
   final VoidCallback onSessionSaved;
 
   @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  @override
+  void initState() {
+    super.initState();
+    _checkDailyGoal();
+  }
+
+  void _checkDailyGoal() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (widget.viewModel.shouldPromptForGoal) {
+        final goal = await showDailyGoalDialog(context);
+        if (goal != null) {
+          widget.viewModel.setDailyGoal(goal);
+        }
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: viewModel,
+      animation: widget.viewModel,
       builder: (context, _) {
         return SafeArea(
           child: SingleChildScrollView(
@@ -47,7 +70,7 @@ class HomeView extends StatelessWidget {
 
                 _buildStudyCard(
                   context,
-                  viewModel,
+                  widget.viewModel,
                 ),
 
                 const SizedBox(height: 24),
@@ -58,7 +81,7 @@ class HomeView extends StatelessWidget {
 
                 _buildRecentSessions(
                   context,
-                  viewModel,
+                  widget.viewModel,
                 ),
               ],
             ),
@@ -383,9 +406,9 @@ class HomeView extends StatelessWidget {
                 builder: (_) => StudyTimerView(
                   subject: null,
                   initialDuration: initialDuration,
-                  viewModel: sessionViewModel,
-                  subjectViewModel: subjectViewModel,
-                  onSessionSaved: onSessionSaved,
+                  viewModel: widget.sessionViewModel,
+                  subjectViewModel: widget.subjectViewModel,
+                  onSessionSaved: widget.onSessionSaved,
                 ),
               ),
             );
