@@ -9,19 +9,21 @@ class NewSubjectView extends StatefulWidget {
     super.key,
     required this.viewModel,
     required this.onCreated,
+    this.subject,
   });
 
   final SubjectViewModel viewModel;
   final VoidCallback onCreated;
+  final Subject? subject;
 
   @override
   State<NewSubjectView> createState() => _NewSubjectViewState();
 }
 
 class _NewSubjectViewState extends State<NewSubjectView> {
-  final _nameController = TextEditingController();
-  SubjectIcon _selectedIcon = SubjectIcon.code;
-  Color _selectedColor = const Color(0xFF4D8073);
+  late final TextEditingController _nameController;
+  late SubjectIcon _selectedIcon;
+  late Color _selectedColor;
 
   final List<Color> _colors = [
     const Color(0xFF4D8073),
@@ -34,11 +36,27 @@ class _NewSubjectViewState extends State<NewSubjectView> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.subject?.name ?? '');
+    _selectedIcon = widget.subject?.icon ?? SubjectIcon.code;
+    _selectedColor = widget.subject?.color ?? const Color(0xFF4D8073);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isEditing = widget.subject != null;
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('New Subject'),
+        title: Text(isEditing ? 'Edit Subject' : 'New Subject'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -140,7 +158,7 @@ class _NewSubjectViewState extends State<NewSubjectView> {
               width: double.infinity,
               height: 64,
               child: ElevatedButton(
-                onPressed: _createSubject,
+                onPressed: _saveSubject,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.ink,
                   foregroundColor: Colors.white,
@@ -148,9 +166,9 @@ class _NewSubjectViewState extends State<NewSubjectView> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: const Text(
-                  'Create Subject',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                child: Text(
+                  isEditing ? 'Update Subject' : 'Create Subject',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -160,17 +178,27 @@ class _NewSubjectViewState extends State<NewSubjectView> {
     );
   }
 
-  void _createSubject() {
+  void _saveSubject() {
     if (_nameController.text.trim().isEmpty) return;
 
-    final subject = Subject(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: _nameController.text.trim(),
-      icon: _selectedIcon,
-      color: _selectedColor,
-    );
+    if (widget.subject != null) {
+      final updatedSubject = Subject(
+        id: widget.subject!.id,
+        name: _nameController.text.trim(),
+        icon: _selectedIcon,
+        color: _selectedColor,
+      );
+      widget.viewModel.updateSubject(updatedSubject);
+    } else {
+      final newSubject = Subject(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: _nameController.text.trim(),
+        icon: _selectedIcon,
+        color: _selectedColor,
+      );
+      widget.viewModel.addSubject(newSubject);
+    }
 
-    widget.viewModel.addSubject(subject);
     widget.onCreated();
     Navigator.pop(context);
   }

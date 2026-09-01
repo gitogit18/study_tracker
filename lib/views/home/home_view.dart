@@ -9,6 +9,7 @@ import '../../viewmodels/session_view_model.dart';
 import '../../viewmodels/subject_view_model.dart';
 import '../../widgets/subject_row.dart';
 import '../session/study_timer_view.dart';
+import '../session/duration_selection_dialog.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({
@@ -369,18 +370,26 @@ class HomeView extends StatelessWidget {
       width: double.infinity,
       height: 114,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => StudyTimerView(
-                subject: null,
-                viewModel: sessionViewModel,
-                subjectViewModel: subjectViewModel,
-                onSessionSaved: onSessionSaved,
+        onPressed: () async {
+          final result = await showDurationSelectionDialog(context);
+          if (result == null) return;
+
+          final initialDuration = result == Duration.zero ? null : result;
+
+          if (context.mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => StudyTimerView(
+                  subject: null,
+                  initialDuration: initialDuration,
+                  viewModel: sessionViewModel,
+                  subjectViewModel: subjectViewModel,
+                  onSessionSaved: onSessionSaved,
+                ),
               ),
-            ),
-          );
+            );
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.ink,

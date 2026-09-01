@@ -31,6 +31,11 @@ class SubjectViewModel extends ChangeNotifier {
     load();
   }
 
+  void updateSubject(Subject subject) {
+    repository.updateSubject(subject);
+    load();
+  }
+
   void deleteSubject(String id) {
     repository.deleteSubject(id);
     load();

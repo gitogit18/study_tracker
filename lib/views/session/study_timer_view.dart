@@ -11,12 +11,14 @@ class StudyTimerView extends StatefulWidget {
   const StudyTimerView({
     super.key,
     this.subject,
+    this.initialDuration,
     required this.viewModel,
     required this.subjectViewModel,
     required this.onSessionSaved,
   });
 
   final Subject? subject;
+  final Duration? initialDuration;
   final SessionViewModel viewModel;
   final SubjectViewModel subjectViewModel;
   final VoidCallback onSessionSaved;
@@ -29,10 +31,12 @@ class _StudyTimerViewState extends State<StudyTimerView> {
   Timer? _timer;
   Duration _elapsed = Duration.zero;
   late DateTime _startTime;
+  bool _isCountdown = false;
 
   @override
   void initState() {
     super.initState();
+    _isCountdown = widget.initialDuration != null;
     _startTimer();
   }
 
@@ -40,13 +44,42 @@ class _StudyTimerViewState extends State<StudyTimerView> {
     _startTime = DateTime.now();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
-        _elapsed = DateTime.now().difference(_startTime);
+        final now = DateTime.now();
+        _elapsed = now.difference(_startTime);
+
+        if (_isCountdown) {
+          if (_elapsed >= widget.initialDuration!) {
+            _elapsed = widget.initialDuration!;
+            _stopTimer();
+            _showCompletionDialog();
+          }
+        }
       });
     });
   }
 
   void _stopTimer() {
     _timer?.cancel();
+  }
+
+  void _showCompletionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Session Complete!'),
+        content: const Text('Great job! You reached your goal.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _endSession();
+            },
+            child: const Text('DONE'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _endSession() {
@@ -89,6 +122,10 @@ class _StudyTimerViewState extends State<StudyTimerView> {
     final backgroundColor = widget.subject?.color ?? AppTheme.ink;
     final subjectName = widget.subject?.name ?? 'Study Session';
 
+    final displayDuration = _isCountdown
+        ? (widget.initialDuration! - _elapsed)
+        : _elapsed;
+
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
@@ -103,9 +140,9 @@ class _StudyTimerViewState extends State<StudyTimerView> {
                     icon: const Icon(Icons.close_rounded, color: Colors.white, size: 32),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  const Text(
-                    'Study Session',
-                    style: TextStyle(
+                  Text(
+                    _isCountdown ? 'Countdown' : 'Study Session',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -147,7 +184,7 @@ class _StudyTimerViewState extends State<StudyTimerView> {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  _formatDuration(_elapsed),
+                  _formatDuration(displayDuration),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 80,

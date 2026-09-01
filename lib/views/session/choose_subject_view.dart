@@ -8,6 +8,7 @@ import '../../widgets/subject_row.dart';
 import '../subjects/manage_subjects_view.dart';
 import '../subjects/new_subject_view.dart';
 import 'study_timer_view.dart';
+import 'duration_selection_dialog.dart';
 
 class ChooseSubjectView extends StatelessWidget {
   const ChooseSubjectView({
@@ -381,21 +382,29 @@ class ChooseSubjectView extends StatelessWidget {
   void _selectSubject(
       BuildContext context,
       Subject subject,
-      ) {
+      ) async {
+    final result = await showDurationSelectionDialog(context);
+    if (result == null) return;
+
+    final initialDuration = result == Duration.zero ? null : result;
+
     sessionViewModel.selectSubject(
       subject.id,
     );
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => StudyTimerView(
-          subject: subject,
-          viewModel: sessionViewModel,
-          subjectViewModel: viewModel,
-          onSessionSaved: onSessionSaved,
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => StudyTimerView(
+            subject: subject,
+            initialDuration: initialDuration,
+            viewModel: sessionViewModel,
+            subjectViewModel: viewModel,
+            onSessionSaved: onSessionSaved,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 }

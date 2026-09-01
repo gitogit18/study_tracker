@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/subject.dart';
 import '../../viewmodels/subject_view_model.dart';
 import '../../widgets/subject_row.dart';
+import 'new_subject_view.dart';
 
 class ManageSubjectsView extends StatelessWidget {
   const ManageSubjectsView({
@@ -38,14 +40,36 @@ class ManageSubjectsView extends StatelessWidget {
               final subject = subjects[index];
               return SubjectRow(
                 subject: subject,
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-                  onPressed: () => _confirmDelete(context, subject.id),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, color: AppTheme.primary),
+                      onPressed: () => _editSubject(context, subject),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                      onPressed: () => _confirmDelete(context, subject.id),
+                    ),
+                  ],
                 ),
               );
             },
           );
         },
+      ),
+    );
+  }
+
+  void _editSubject(BuildContext context, Subject subject) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => NewSubjectView(
+          viewModel: viewModel,
+          onCreated: () {},
+          subject: subject,
+        ),
       ),
     );
   }

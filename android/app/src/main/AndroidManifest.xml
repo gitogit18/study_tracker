@@ -1,11 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.study_tracker">
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:label="Focusly"
-        android:icon="@mipmap/ic_launcher">
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
+        tools:ignore="MissingClass">
         <activity
             android:name=".MainActivity"
             android:exported="true"
