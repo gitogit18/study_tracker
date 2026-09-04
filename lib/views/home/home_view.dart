@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:confetti/confetti.dart';
-import 'package:liquid_progress_indicator/liquid_progress_indicator.dart';
+import 'package:fluid_progress_indicator/fluid_progress_indicator.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
@@ -35,14 +35,12 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   late ConfettiController _confettiController;
   double _lastProgress = 0.0;
-  int _lastSessionCount = 0;
 
   @override
   void initState() {
     super.initState();
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
     _lastProgress = widget.viewModel.progress;
-    _lastSessionCount = widget.viewModel.recentSessions.length;
     widget.viewModel.addListener(_onViewModelChanged);
     _checkDailyGoal();
   }
@@ -63,7 +61,6 @@ class _HomeViewState extends State<HomeView> {
     }
     
     _lastProgress = widget.viewModel.progress;
-    _lastSessionCount = widget.viewModel.recentSessions.length;
   }
 
   void _checkDailyGoal() {
@@ -325,13 +322,13 @@ class _HomeViewState extends State<HomeView> {
             builder: (context, value, _) {
               return SizedBox(
                 height: 12,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: LiquidLinearProgressIndicator(
-                    value: value,
-                    valueColor: const AlwaysStoppedAnimation(AppTheme.primary),
-                    backgroundColor: const Color(0xFFECEDE9),
-                    direction: Axis.horizontal,
+                child: FluidProgressIndicator(
+                  progress: (value * 100).toInt(),
+                  maxProgress: 100,
+                  fillColor: AppTheme.primary,
+                  borderRadius: 20,
+                  backgroundConfig: const IndicatorBackgroundConfig(
+                    color: Color(0xFFECEDE9),
                   ),
                 ),
               );
