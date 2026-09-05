@@ -9,8 +9,11 @@ import '../../viewmodels/auth_view_model.dart';
 import '../../viewmodels/home_view_model.dart';
 import '../../viewmodels/session_view_model.dart';
 import '../../viewmodels/subject_view_model.dart';
+import '../../viewmodels/streak_view_model.dart';
 import '../../widgets/subject_row.dart';
+import '../../widgets/streak_card.dart';
 import '../session/study_timer_view.dart';
+import '../streak/streak_view.dart';
 import '../session/duration_selection_dialog.dart';
 import 'daily_goal_dialog.dart';
 
@@ -20,12 +23,14 @@ class HomeView extends StatefulWidget {
     required this.viewModel,
     required this.sessionViewModel,
     required this.subjectViewModel,
+    required this.streakViewModel,
     required this.onSessionSaved,
   });
 
   final HomeViewModel viewModel;
   final SessionViewModel sessionViewModel;
   final SubjectViewModel subjectViewModel;
+  final StreakViewModel streakViewModel;
   final VoidCallback onSessionSaved;
 
   @override
@@ -354,33 +359,19 @@ class _HomeViewState extends State<HomeView> {
 
           const SizedBox(height: 30),
 
-          Row(
-            children: [
-              const Text(
-                '🔥',
-                style: TextStyle(fontSize: 18),
-              ),
-
-              const SizedBox(width: 12),
-
-              Text(
-                '${viewModel.streak} day streak',
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
+          StreakCard(
+            streak: widget.streakViewModel.currentStreak,
+            freezes: widget.streakViewModel.freezesAvailable,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => StreakView(
+                    viewModel: widget.streakViewModel,
+                  ),
                 ),
-              ),
-
-              const SizedBox(width: 8),
-
-              const Text(
-                '— keep it going',
-                style: TextStyle(
-                  fontSize: 17,
-                  color: AppTheme.muted,
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ],
       ),

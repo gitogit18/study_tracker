@@ -15,7 +15,12 @@ class HomeViewModel extends ChangeNotifier {
 
   Duration get dailyGoal {
     final minutesVal = repository.settings['dailyGoalMinutes'];
-    final int minutes = (minutesVal is num) ? minutesVal.toInt() : 240;
+    int minutes = 60;
+    if (minutesVal is num) {
+      minutes = minutesVal.toInt();
+    } else if (minutesVal is String) {
+      minutes = int.tryParse(minutesVal) ?? 60;
+    }
     return Duration(minutes: minutes);
   }
 

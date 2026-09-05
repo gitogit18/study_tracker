@@ -11,11 +11,40 @@ class DailyGoalDialog extends StatefulWidget {
 class _DailyGoalDialogState extends State<DailyGoalDialog> {
   final _customController = TextEditingController();
   int? _selectedMinutes;
+  String? _errorText;
 
   @override
   void dispose() {
     _customController.dispose();
     super.dispose();
+  }
+
+  void _validate(String val) {
+    if (val.isEmpty) {
+      setState(() => _errorText = null);
+      return;
+    }
+
+    final minutes = int.tryParse(val);
+    setState(() {
+      if (minutes == null) {
+        _errorText = 'Please enter a valid number';
+      } else if (minutes < 10) {
+        _errorText = 'Minimal 10 minutes';
+      } else {
+        _errorText = null;
+      }
+    });
+  }
+
+  bool get _isValid {
+    int? minutes;
+    if (_selectedMinutes != null) {
+      minutes = _selectedMinutes;
+    } else if (_customController.text.isNotEmpty) {
+      minutes = int.tryParse(_customController.text);
+    }
+    return minutes != null && minutes >= 10;
   }
 
   @override
@@ -67,13 +96,19 @@ class _DailyGoalDialogState extends State<DailyGoalDialog> {
               keyboardType: TextInputType.number,
               onChanged: (val) {
                 if (val.isNotEmpty) {
-                  setState(() => _selectedMinutes = null);
+                  setState(() {
+                    _selectedMinutes = null;
+                  });
+                  _validate(val);
+                } else {
+                  setState(() => _errorText = null);
                 }
               },
               decoration: InputDecoration(
                 hintText: 'e.g. 120',
                 filled: true,
                 fillColor: AppTheme.divider.withValues(alpha: 0.2),
+                errorText: _errorText,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -85,10 +120,12 @@ class _DailyGoalDialogState extends State<DailyGoalDialog> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: _submit,
+                onPressed: _isValid ? _submit : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.ink,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppTheme.muted,
+                  disabledForegroundColor: Colors.white70,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -132,7 +169,11 @@ class _DailyGoalDialogState extends State<DailyGoalDialog> {
       minutes = int.tryParse(_customController.text);
     }
 
-    if (minutes != null && minutes > 0) {
+    if (minutes != null) {
+      if (minutes < 10) {
+        setState(() => _errorText = 'Minimal 10 minutes');
+        return;
+      }
       Navigator.pop(context, Duration(minutes: minutes));
     }
   }

@@ -9,6 +9,7 @@ import 'viewmodels/history_view_model.dart';
 import 'viewmodels/home_view_model.dart';
 import 'viewmodels/session_view_model.dart';
 import 'viewmodels/stats_view_model.dart';
+import 'viewmodels/streak_view_model.dart';
 import 'viewmodels/subject_view_model.dart';
 import 'views/auth/login_view.dart';
 import 'views/main_shell.dart';
@@ -73,24 +74,30 @@ class AuthGate extends StatelessWidget {
           create: (context) => StatsViewModel(context.read<StudyRepository>()),
           update: (_, repo, model) => model!..load(),
         ),
+        ChangeNotifierProxyProvider<StudyRepository, StreakViewModel>(
+          create: (context) => StreakViewModel(context.read<StudyRepository>()),
+          update: (_, repo, model) => model!..load(),
+        ),
         ChangeNotifierProvider(
           create: (context) => SessionViewModel(context.read<StudyRepository>()),
         ),
       ],
-      child: Consumer5<HomeViewModel, SubjectViewModel, HistoryViewModel,
-          StatsViewModel, SessionViewModel>(
-        builder: (context, home, subject, history, stats, session, _) {
+      child: Consumer6<HomeViewModel, SubjectViewModel, HistoryViewModel,
+          StatsViewModel, SessionViewModel, StreakViewModel>(
+        builder: (context, home, subject, history, stats, session, streak, _) {
           return MainShell(
             homeViewModel: home,
             subjectViewModel: subject,
             historyViewModel: history,
             statsViewModel: stats,
             sessionViewModel: session,
+            streakViewModel: streak,
             onDataChanged: () {
               home.load();
               subject.load();
               history.load();
               stats.load();
+              streak.load();
             },
           );
         },

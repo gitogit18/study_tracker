@@ -4,6 +4,7 @@ import '../viewmodels/history_view_model.dart';
 import '../viewmodels/home_view_model.dart';
 import '../viewmodels/session_view_model.dart';
 import '../viewmodels/stats_view_model.dart';
+import '../viewmodels/streak_view_model.dart';
 import '../viewmodels/subject_view_model.dart';
 import 'home/home_view.dart';
 import 'session/choose_subject_view.dart';
@@ -18,6 +19,7 @@ class MainShell extends StatefulWidget {
     required this.historyViewModel,
     required this.statsViewModel,
     required this.sessionViewModel,
+    required this.streakViewModel,
     this.onDataChanged,
   });
 
@@ -26,6 +28,7 @@ class MainShell extends StatefulWidget {
   final HistoryViewModel historyViewModel;
   final StatsViewModel statsViewModel;
   final SessionViewModel sessionViewModel;
+  final StreakViewModel streakViewModel;
   final VoidCallback? onDataChanged;
 
   @override
@@ -42,6 +45,7 @@ class _MainShellState extends State<MainShell> {
         viewModel: widget.homeViewModel,
         sessionViewModel: widget.sessionViewModel,
         subjectViewModel: widget.subjectViewModel,
+        streakViewModel: widget.streakViewModel,
         onSessionSaved: widget.onDataChanged ?? () {},
       ),
       ChooseSubjectView(

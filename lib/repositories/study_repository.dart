@@ -1,17 +1,19 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../models/study_session.dart';
 import '../models/subject.dart';
 
 class StudyRepository extends ChangeNotifier {
-  StudyRepository(this.uid) {
+  StudyRepository(this.uid, {FirebaseFirestore? firestore}) : _firestore = firestore {
     _init();
   }
 
   final String uid;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseFirestore? _firestore;
+  FirebaseFirestore get firestore => _firestore ??= FirebaseFirestore.instance;
 
   List<Subject> _subjects = [];
   List<StudySession> _sessions = [];
@@ -22,7 +24,7 @@ class StudyRepository extends ChangeNotifier {
   StreamSubscription? _settingsSub;
 
   void _init() {
-    _settingsSub = _firestore
+    _settingsSub = firestore
         .collection('users')
         .doc(uid)
         .snapshots()
@@ -33,7 +35,7 @@ class StudyRepository extends ChangeNotifier {
       }
     });
 
-    _subjectsSub = _firestore
+    _subjectsSub = firestore
         .collection('users')
         .doc(uid)
         .collection('subjects')
@@ -45,7 +47,7 @@ class StudyRepository extends ChangeNotifier {
       notifyListeners();
     });
 
-    _sessionsSub = _firestore
+    _sessionsSub = firestore
         .collection('users')
         .doc(uid)
         .collection('sessions')
@@ -67,9 +69,25 @@ class StudyRepository extends ChangeNotifier {
     final now = DateTime.now();
     final today = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
     
-    await _firestore.collection('users').doc(uid).set({
+    await firestore.collection('users').doc(uid).set({
       'dailyGoalMinutes': minutes,
       'lastGoalSetDate': today,
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> updateStreakData({
+    required int currentStreak,
+    required int longestStreak,
+    required int freezesAvailable,
+    required int successfulDaysCount,
+    required List<String> freezeUsageDates,
+  }) async {
+    await firestore.collection('users').doc(uid).set({
+      'currentStreak': currentStreak,
+      'longestStreak': longestStreak,
+      'freezesAvailable': freezesAvailable,
+      'successfulDaysCount': successfulDaysCount,
+      'freezeUsageDates': freezeUsageDates,
     }, SetOptions(merge: true));
   }
 
@@ -82,7 +100,7 @@ class StudyRepository extends ChangeNotifier {
   }
 
   Future<void> addSubject(Subject subject) async {
-    await _firestore
+    await firestore
         .collection('users')
         .doc(uid)
         .collection('subjects')
@@ -91,7 +109,7 @@ class StudyRepository extends ChangeNotifier {
   }
 
   Future<void> updateSubject(Subject subject) async {
-    await _firestore
+    await firestore
         .collection('users')
         .doc(uid)
         .collection('subjects')
@@ -100,7 +118,7 @@ class StudyRepository extends ChangeNotifier {
   }
 
   Future<void> deleteSubject(String id) async {
-    await _firestore
+    await firestore
         .collection('users')
         .doc(uid)
         .collection('subjects')
@@ -109,7 +127,7 @@ class StudyRepository extends ChangeNotifier {
   }
 
   Future<void> addSession(StudySession session) async {
-    await _firestore
+    await firestore
         .collection('users')
         .doc(uid)
         .collection('sessions')
