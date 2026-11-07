@@ -33,7 +33,7 @@ class Subject {
     return {
       'name': name,
       'icon': icon.name,
-      'color': color.value,
+      'color': color.toARGB32(),
     };
   }
 

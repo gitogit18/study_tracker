@@ -159,7 +159,7 @@ class _StreakCalendarState extends State<StreakCalendar> {
         textColor = AppTheme.muted;
         break;
       case StreakStatus.future:
-        textColor = AppTheme.muted.withOpacity(0.5);
+        textColor = AppTheme.muted.withValues(alpha: 0.5);
         break;
     }
 

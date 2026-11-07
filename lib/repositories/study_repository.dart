@@ -7,7 +7,7 @@ import '../models/study_session.dart';
 import '../models/subject.dart';
 
 class StudyRepository extends ChangeNotifier {
-  StudyRepository(this.uid, {FirebaseFirestore? firestore}) : _firestore = firestore {
+  StudyRepository(this.uid, {this._firestore}) {
     _init();
   }
 

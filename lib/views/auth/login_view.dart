@@ -76,7 +76,7 @@ class LoginView extends StatelessWidget {
                           'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
                           height: 24,
                           // Note: In a real app, use a local asset
-                          errorBuilder: (_, __, ___) => const Icon(Icons.login),
+                          errorBuilder: (_, _, _) => const Icon(Icons.login),
                         ),
                         const SizedBox(width: 16),
                         const Text(
